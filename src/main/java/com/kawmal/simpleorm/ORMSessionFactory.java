@@ -22,47 +22,43 @@ public class ORMSessionFactory {
             return this;
         }
 
+
         public ORMSessionFactory setConnection(Connection connection){
             this.connection=connection;
             return this;
         }
 
         public void bootstrap() throws SQLException {
-            String tableName = null;
-            List<String> columns = null;
             for (Class<?> entity : entityClassList) {
-                tableName = entity.getDeclaredAnnotation(Entity.class).value();
+                String tableName = entity.getDeclaredAnnotation(Entity.class).value();
+                if (tableName.trim().isEmpty()) tableName = entity.getSimpleName();
 
-                if (tableName.trim().isEmpty()) {
-                    tableName=entity.getSimpleName();
-                }
-
-                columns = new ArrayList<>();
+                List<String> columns = new ArrayList<>();
                 String primaryKey = null;
 
                 Field[] fields = entity.getDeclaredFields();
-
                 for (Field field : fields) {
                     Id primaryKeyField = field.getDeclaredAnnotation(Id.class);
                     if (primaryKeyField != null) {
                         primaryKey = field.getName();
                         continue;
                     }
+
                     String columnName = field.getName();
                     columns.add(columnName);
                 }
+                if (primaryKey == null) throw new RuntimeException("Entity without a primary key");
+
+                StringBuilder sb = new StringBuilder();
+                sb.append("CREATE TABLE IF NOT EXISTS ").append(tableName).append("(");
+                for (String column : columns) {
+                    sb.append(column).append(" VARCHAR(255),");
+                }
+                sb.append(primaryKey).append(" VARCHAR(255) PRIMARY KEY)");
+                System.out.println(sb);
+                Statement stm = connection.createStatement();
+                stm.execute(sb.toString());
             }
 
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append("CREATE TABLE IF EXISTS ").append(tableName).append("(");
-            for (String column : columns) {
-                stringBuilder.append(column).append(" VARCHAR(255) PRIMARY KEY)");
-
-            }
-            System.out.println(stringBuilder);
-            Statement statement=connection.createStatement();
-            statement.execute(stringBuilder.toString());
         }
-
-
 }
