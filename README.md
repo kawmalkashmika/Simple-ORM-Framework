@@ -31,7 +31,7 @@
 
 ### License
 
-Version 1.0.0 ,30 May 2022
+Version 1.0.0 ,15 June 2022
 
 Copyright &copy; 2022 Kawmal Kashmika <kkashmik@gmail.com>. All rights reserved.
 
